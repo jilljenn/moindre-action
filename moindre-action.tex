@@ -1,0 +1,190 @@
+\documentclass[a4paper, 11pt]{article}
+
+% Math symbols, notation, etc.
+% Apparently, must be loaded earlier than mathspec?
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+
+% Locale/encoding with XeTeX: UTF-8 by default, use fontspec
+\usepackage{unicode-math}
+\usepackage{polyglossia} % Modern replacement for Babel
+\setmainlanguage{french} % or {english}
+\usepackage{csquotes} % guillemets
+
+% Other
+\usepackage{fullpage}
+%\usepackage{enumerate}
+%\usepackage{graphicx}
+
+\begin{document}
+
+\title{La Programmation dynamique de Richard Bellman}
+\maketitle
+
+\LaTeX c'est pratique pour compiler les maths.
+
+TODO : convertir en Markdown ?
+
+Challenge : ordonnancement de toutes les choses à dire.
+Il y a peut-être de quoi découper en 3 articles.
+
+\section{Introduction}
+
+La programmation dynamique, c'est faire de la récursivité dans un tableau. Sauf
+que PLOT TWIST, en fait c'est la discrétisation de l'équation de
+Hamilton-Jacobi-Bellman !
+
+Même chose, présentation complètement différente, selon si c'est enseigné dans
+des cursus d'informatique ou d'économie. (Montrer des pièces à conviction ?)
+
+Inventé par Richard Bellman avant l'invention de l'algorithmique.
+
+Plein d'applications.
+
+
+\section{Problèmes d'optimisation à plusieurs étapes}
+
+(Ici : optimisation, temps discret, contrôle discret.)
+
+\subsection{Un premier exemple}
+
+Trouver un exemple de problème à horizon fini complètement trivial (genre $T = 3$).
+
+\subsubsection{Position du problème}
+
+Joli dessin.
+
+\subsubsection{Le principe d'optimalité}
+
+Écrire une équation de Bellman ici.
+
+\subsubsection{Une méthode de résolution}
+
+Résoudre l'équation en partant de la fin.
+(Raisonnement rétrograde.)
+Récupérer le contrôle optimal comme argmin de la valeur.
+
+\subsection{Un problème à état final fixé : le chemin le plus rapide}
+
+Quadrillage/pavage avec sommets pondérés. (Plus courts chemins dans Wesnoth !)
+
+Même principe d'optimalité, formulation légèrement différente (temps final non
+connu à minimiser). Équation de Bellman comme équation de point fixe.
+
+Résolution : itération sur les valeurs.
+
+On a ainsi résolu le problème de single-destination shortest path. Plus
+intéressant dans le cadre d'un tel jeu : single-source. Équation à l'envers,
+résolution.
+
+On verra plus loin comment faire mieux.
+
+\subsection{Stratégie pour le jeu de Nim}
+
+Définir les valeurs (0 pour perte, 1 pour gain), écrire l'équation de Bellman à
+deux joueurs, et la résoudre à rebours. C'est un exo TaupIC, d'ailleurs.
+
+En général, jeux à somme nulle : minimax.
+
+Appliqué par Bellman à des fins de parties d'échecs.
+
+\subsection{Autres variantes en recherche opérationnelle}
+
+À mentionner vite fait : horizon infini, stochastique, etc.
+
+Exemple : unit commitment chez EDF (cf. livre blanc de la RO).
+
+
+<\section{Applications en algorithmique}
+
+\subsection{Optimisation combinatoire}
+
+\subsubsection{Exemple de récurrence à rebours : le sac à dos}
+
+Introduire une notion de temps : on décide successivement pour chaque objet si
+on le prend ou pas.
+
+\subsubsection{Exemple d'itération sur les valeurs : plus court chemin dans un
+  graphe}
+
+Bellman-Ford généralise l'algorithme plus haut.
+On sait à l'avance combien d'itération nécessaires avant d'atteindre un point
+fixe : algorithme polynomial + détection de cycles négatifs.
+
+Relaxation des arêtes (repose sur le principe d'optimalité). Pareil en plus
+malin : Dijkstra.
+
+\subsection{Généralisation}
+
+Levenshtein (alignement de séquence, mentionner l'application en génétique) :
+l'important est la sous-structure optimale.
+
+Plus généralement, récursivité avec recouvrements de sous-problèmes, même si on
+n'optimise rien. Exemple : triangle de Pascal (plus convaincant que Fibonacci).
+
+Lien avec les semi-anneaux ? Équations de Bellman dans autre chose que max-plus
+(chercher référence).
+
+\subsection{Historique}
+
+Comment est-ce que \enquote{programmation dynamique} s'est mis à vouloir dire ça
+en algo ? Chercher des références dans Knuth peut-être.
+
+\section{Optimisation en temps continu et mécanique analytique}
+
+\subsection{Chemin le plus rapide en milieu continu}
+
+Pareil que l'exemple de plus court chemin précédent, en continu.
+
+On veut se rendre du point $S$ au point $D$ : $V(D) = 0$ et on cherche $V(S)$.
+$V(P)$ minimise $T$ parmi les trajectoires contrôlées partant de $P$ à $t = 0$
+et arrivant en $D$ en $t = T$. Autrement dit, on veut trouver $\vec{u}$ telle
+que la solution de l'équation différentielle avec condition initiale
+\[ X'(t) = \rho(X(t))\vec{u}(t), \qquad X(0) = P \]
+vérifie $X(T) = D$ pour un $T$ le plus petit possible.
+
+$\rho$ : champ scalaire des vitesses de déplacement dans le milieu ; $\vec{u}$ :
+contrôle i.e. direction de déplacement choisie, vecteur de norme 1.
+
+Sur un déplacement infinitésimal $\overrightarrow{dl}$, pendant un pas de temps
+$dt$ :
+\[ V(P) = \min_{\|\vec{\omega}\| = 1} \left( dt + V(P + \overrightarrow{dl})
+  \right)\]
+où $\vec{\omega}$ est le contrôle, en fonction duquel dépend $\overrightarrow{dl}$.
+Cette équation fonctionnelle récursive est analogue à l'équation de Bellman en temps discret.
+En soustrayant $V(P)$ :
+\[ 0 = \min_{\|\vec{\omega}\| = 1} \left( dt + \nabla V(P) \cdot \overrightarrow{dl}
+     \right)\]
+Comme $\overrightarrow{dl}/dt$ est la vitesse et vaut $\rho(P)\vec{\omega}$ :
+\[ \min_{\|\vec{\omega}\| = 1} \left( 1 + \nabla V(P) \cdot
+    \rho(P)\vec{\omega} \right) = 0 \]
+On s'est ramené à une équation différentielle, nommée \emph{équation de
+  Hamilton-Jacobi-Bellman}.
+
+On choisit alors le contrôle $\omega$ atteignant le minimum comme valeur de
+$\vec{u}(P)$. $\vec{u}$ est la politique optimale, qui donne la meilleure
+décision à prendre localement en fonction de l'état.
+
+Exemple sur une carte au pif.
+
+Exemple avec un plan coupé par une droite (terre/mer).
+
+Principe de Fermat, réfraction. Discuter de la causalité.
+
+\subsection{Mouvement d'une particule dans un champ de forces conservatives :
+  équation de Hamilton-Jacobi}
+
+Principe de moindre action (Maupertuis) : la trajectoire dans l'espace des
+phases minimise l'intégrale du lagrangien.
+
+Problème d'optimisation où contrôle = vecteur vitesse
+
+Écrire HJB pour obtenir le hamiltonien comme transformée de Lengendre-Fenchel du
+langrangien ?
+
+\section{L'anecdote sur le nom dynamic programming}
+
+Parce que c'est important.
+
+\end{document}
